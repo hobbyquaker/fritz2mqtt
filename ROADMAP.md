@@ -22,6 +22,27 @@
 - Derived traffic rates, IPv6 probe-once, WLAN band labels, discovery coalescing, log fixes
   from the first hardware run.
 
+## Next steps
+
+Agreed 2026-08-26; the first block needs someone at the box, the rest is code.
+
+1. **At home — verify 1.1.0 on the 7590**, then tag `v1.1.0` (`git tag v1.1.0 && git push origin
+v1.1.0` runs the release workflow):
+   - deploy `master` (`npm run deploy`), check the `services:` line lists `tam`;
+   - `tam/0/*` and `deflection/*` topics look right (see "Still unverified" → TAM / deflections);
+     toggle `set/tam/0/enabled` and a deflection and watch the status follow;
+   - dial `#96*5*` on a phone at the box, make a call, check `event/call` / `call/*`;
+   - optionally enable "Statusinformationen über UPnP übertragen" → IGD tree: box-side
+     `wan/rate_*`, `wan/external_ipv6`;
+   - toggle a WLAN via `set/wlan/<n>/enabled`;
+   - let it run a day for the Digest nonce lifetime.
+2. **Smart home** (`X_AVM-DE_Homeauto:1`) — the next feature, only if DECT devices hang on the
+   box; see Features.
+3. Phonebook lookup for `event/call`, then the small items (global WLAN switch, `mark_read`,
+   `--forget-after`).
+4. Housekeeping: capture real fixtures from the 7590 (`scripts/dump.js`), deprecate the
+   Node-RED flow.
+
 ## Open
 
 ### Verified on real boxes
