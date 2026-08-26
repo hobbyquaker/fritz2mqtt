@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Root>
+  <Message>
+    <Index>3</Index>
+    <Tam>0</Tam>
+    <Called>987654</Called>
+    <Date>26.08.26 17:42</Date>
+    <Duration>0:01</Duration>
+    <Inbook>1</Inbook>
+    <Name>Max Mustermann</Name>
+    <New>1</New>
+    <Number>0301234567</Number>
+    <Path>/data/tam/rec/rec.0.003</Path>
+  </Message>
+  <Message>
+    <Index>2</Index>
+    <Tam>0</Tam>
+    <Called>987654</Called>
+    <Date>25.08.26 09:01</Date>
+    <Duration>0:02</Duration>
+    <Inbook>0</Inbook>
+    <Name></Name>
+    <New>0</New>
+    <Number>0151000000</Number>
+    <Path>/data/tam/rec/rec.0.002</Path>
+  </Message>
+</Root>

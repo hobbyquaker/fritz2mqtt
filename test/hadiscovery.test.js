@@ -1,7 +1,7 @@
 import {test, describe} from 'node:test';
 import assert from 'node:assert/strict';
 
-import {discoveryModel, wlanLabel, ADAPTER} from '../lib/hadiscovery.js';
+import {discoveryModel, wlanLabel, deflectionLabel, ADAPTER} from '../lib/hadiscovery.js';
 
 describe('hadiscovery', () => {
     test('box device with all features', () => {
@@ -12,6 +12,8 @@ describe('hadiscovery', () => {
                 {index: 1, ssid: 'Home', guest: false, band: '2400'},
                 {index: 3, ssid: 'Guest', guest: true},
             ],
+            tams: [{index: 0, name: 'Anrufbeantworter'}],
+            deflections: [{id: 0, type: 'fromNumber', number: '0301', to: '0151'}],
             hosts: [{mac: 'AA:BB:CC:DD:EE:01', key: 'phone', name: 'phone', wired: false}],
         });
         assert.equal(rest.length, 0);
@@ -43,6 +45,13 @@ describe('hadiscovery', () => {
         assert.equal(c.wlan_3_enabled.ic, 'mdi:wifi-lock-open');
         assert.equal(c.wlan_3_associations.stat_t, 'fritz/status/wlan/3/associations');
         assert.equal(c.host_count_active.stat_t, 'fritz/status/host_count/active');
+        assert.equal(c.tam_0_enabled.p, 'switch');
+        assert.equal(c.tam_0_enabled.name, 'Answering machine Anrufbeantworter');
+        assert.equal(c.tam_0_enabled.cmd_t, 'fritz/set/tam/0/enabled');
+        assert.equal(c.tam_0_new_messages.stat_t, 'fritz/status/tam/0/new_messages');
+        assert.equal(c.deflection_0_enabled.p, 'switch');
+        assert.equal(c.deflection_0_enabled.name, 'Deflection 0301 → 0151');
+        assert.equal(c.deflection_0_enabled.cmd_t, 'fritz/set/deflection/0/enabled');
         assert.equal(c.call_active.p, 'binary_sensor');
         assert.equal(c.call_last_caller.val_tpl, '{{ value_json.val.number }}');
         assert.equal(c.reboot.cmd_t, 'fritz/set/device/reboot');
@@ -62,6 +71,19 @@ describe('hadiscovery', () => {
         assert.equal(wlanLabel(wlans[1], wlans), 'WLAN Home 5 GHz');
         assert.equal(wlanLabel(wlans[2], wlans), 'WLAN Gast');
         assert.equal(wlanLabel(wlans[3], wlans), 'WLAN 4 6 GHz');
+    });
+
+    test('deflection labels', () => {
+        assert.equal(
+            deflectionLabel({id: 0, type: 'fromNumber', number: '0301', to: '0151'}),
+            'Deflection 0301 → 0151',
+        );
+        assert.equal(
+            deflectionLabel({id: 1, type: 'fromAll', number: '', to: '**600'}),
+            'Deflection all calls → **600',
+        );
+        assert.equal(deflectionLabel({id: 2, type: 'fromAnonymous', number: '', to: ''}), 'Deflection Anonymous');
+        assert.equal(deflectionLabel({id: 3, type: '', number: '', to: ''}), 'Deflection 3');
     });
 
     test('features off remove their entities', () => {

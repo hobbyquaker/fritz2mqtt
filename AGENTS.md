@@ -24,10 +24,11 @@ Topic structure is `<name>/<function>/<item>`, `<name>` = `--name` (default `fri
   succeeded).
 - `<name>/status/<item>` — retained `{val, ts, lc}` (plain with `--no-json-payloads`). Item
   groups: `device/*`, `dsl/*`, `wan/*` (incl. `wan/link/*` and the traffic counters/rates),
-  `wlan/<n>/*`, `host_count[/active]`, `host/<key>/{present,details}`, `call/*`, `calllist`.
-  `event/call` is an **event** (not retained).
-- `<name>/set/wlan/<n>/enabled`, `set/wan/reconnect`, `set/device/reboot`,
-  `set/calllist/refresh`, `set/host/<key>/wol`, `set/raw` (opt-in `--raw-set`) — the commands.
+  `wlan/<n>/*`, `host_count[/active]`, `host/<key>/{present,details}`, `call/*`, `calllist`,
+  `tam/*`, `tam/<n>/*`, `deflection/<id>/*`. `event/call` is an **event** (not retained).
+- `<name>/set/wlan/<n>/enabled`, `set/tam/<n>/enabled`, `set/deflection/<id>/enabled`,
+  `set/wan/reconnect`, `set/device/reboot`, `set/calllist/refresh`, `set/host/<key>/wol`,
+  `set/raw` (opt-in `--raw-set`) — the commands.
 - `<name>/raw` — the answer to a `set/raw` action (not retained).
 - `<name>/info`, `<name>/maintenance/set/{loglevel,restart}` — from the core.
 
@@ -54,9 +55,10 @@ service, action}`, device descriptions (`tr64desc.xml` + optional `igddesc.xml`,
   namespaces). Enough for everything the box sends; not a general parser.
 - `lib/model.js` — `FritzState`: the pure box model. Feed `applyDevice()`, `applyDsl()`,
   `applyLink()`, `applyWan()`, `applyTraffic()`, `applyWlans()`, `applyHosts()`, `applyCall()`,
-  `applyCallList()`; get `{changes, clear, discovery}` back. Only changed values are reported
+  `applyCallList()`, `applyTams()`, `applyDeflections()`; get `{changes, clear, discovery}` back. Only changed values are reported
   (JSON compare per item). Unit conversions (0.1 dB → dB) and item names live here only.
-- `lib/lists.js` — parsers for the call list and host list XML documents, `listPath()`.
+- `lib/lists.js` — parsers for the call list, host list, answering machine list and messages
+  and the deflection list, `listPath()`.
 - `lib/callmonitor.js` — `parseLine()` (pure) and `CallMonitor` (TCP 1012, reconnect, keepalive).
 - `lib/hadiscovery.js` — `discoveryModel()`: the box as one HA device (+ one device per host
   with `--ha-hosts`) via the core's `entity()`.

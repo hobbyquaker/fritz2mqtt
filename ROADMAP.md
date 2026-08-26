@@ -15,6 +15,13 @@
 - Replaces the author's Node-RED flow (node-red-contrib-fritz: `WANDSLInterfaceConfig GetInfo`,
   `GetTotalBytesSent/Received`, `WANPPPConnection GetInfo`, `GetCallList`).
 
+## Done in 1.1.0
+
+- Answering machines (`tam/*`, switch, message counts and list) and call deflections
+  (`deflection/*`, switch) — from the documentation, not yet verified on a box.
+- Derived traffic rates, IPv6 probe-once, WLAN band labels, discovery coalescing, log fixes
+  from the first hardware run.
+
 ## Open
 
 ### Verified on real boxes
@@ -43,6 +50,9 @@ TR-064 `GetTotalBytesSent/Received` are 64 bit. Not on this box: the IGD tree (U
 - **WLAN** `SetEnable` and how long until `GetInfo` reflects it; `WLANConfiguration:4` boxes.
 - Cable / fiber / LTE boxes (`--no-dsl`, `WANIPConnection`), `Layer3Forwarding` string on them.
 - TLS on 49443 with the box's self-signed certificate (`--tls -k`).
+- **TAM / deflections** (1.1.0): `GetList` `Display` semantics, `GetMessageList` `NewURL` and the
+  message document's field names, `GetDeflections` list format and `Type`/`Mode` vocabulary,
+  rights needed (documented: P).
 - Host list size on large networks; whether the sid path expires (it is re-read every poll).
 
 ### Features
@@ -51,8 +61,7 @@ TR-064 `GetTotalBytesSent/Received` are 64 bit. Not on this box: the IGD tree (U
   switches, thermostats and sensors as `smarthome/<ain>/*` items and HA devices. TR-064 exposes
   switch state, power, energy, temperature and thermostat status; set temperature needs the AHA
   HTTP interface.
-- Answering machine (`X_AVM-DE_TAM`): `tam/<n>/enabled` (switch), new message count.
-- Call deflections (`X_AVM-DE_OnTel GetDeflections` / `SetDeflectionEnable`) as switches.
+- Answering machine: `set/tam/<n>/mark_read` (`MarkMessage`), incremental message fetch.
 - Phonebook lookup for the call monitor (`GetPhonebook` → name of the caller in `event/call`).
 - Per-host details from `X_AVM-DE_GetSpecificHostEntryByIP` (wan access, filter profile) and
   `set/host/<key>/wan_access` via `X_AVM-DE_HostFilter` — opt-in, it is parental control.

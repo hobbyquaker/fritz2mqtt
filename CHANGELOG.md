@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+
+- Answering machines (`X_AVM-DE_TAM`): `tam/running`, `tam/capacity`, per configured machine
+  `tam/<n>/{enabled,name,messages,new_messages,last_message,message_list}`; `set/tam/<n>/enabled`;
+  Home Assistant switch and new-message sensor per machine. Messages are re-read after every call.
+  `--no-tam` to skip.
+- Call deflections (`X_AVM-DE_OnTel GetDeflections`): `deflection/<id>/{enabled,details}`,
+  `set/deflection/<id>/enabled`, a Home Assistant switch per deflection. `--no-deflections` to skip.
+- `--calllist-max` also caps each answering machine's message list.
+
+### Changed
+
+- Home Assistant discovery is re-published once per poll at most (was up to three times at startup).
+- The external IPv6 address is probed once (IGD `WANIPConn1`, then the TR-064 connection service)
+  instead of every poll; boxes without the IGD tree log one `info` line.
+- WLAN switch names carry the band (`WLAN <ssid> 2.4 GHz` / `5 GHz`) so two radios with one SSID
+  can be told apart.
+- Traffic rates are derived from the counter deltas when the box does not serve the IGD tree.
+
+### Fixed
+
+- `<name>/info` `version` was overwritten by the box firmware version (now `firmware`).
+- The box's `DeviceLog` no longer floods the debug log.
+
 ## 1.0.0
 
 First release. An MQTT interface for AVM FRITZ!Box routers on

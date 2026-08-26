@@ -2,7 +2,17 @@ import {test, describe} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-import {parseCallList, parseHostList, hostFromEntry, listPath, parseCallDate, parseDuration} from '../lib/lists.js';
+import {
+    parseCallList,
+    parseHostList,
+    parseTamList,
+    parseTamMessages,
+    parseDeflections,
+    hostFromEntry,
+    listPath,
+    parseCallDate,
+    parseDuration,
+} from '../lib/lists.js';
 
 const fixture = (name) => fs.readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8');
 
@@ -113,5 +123,69 @@ describe('lists', () => {
                 guest: false,
             },
         );
+    });
+
+    test('tam list', () => {
+        const list = parseTamList(
+            '<List><TAMRunning>1</TAMRunning><Stick>0</Stick><Status>0</Status><Capacity>38</Capacity>' +
+                '<Item><Index>0</Index><Display>1</Display><Enable>1</Enable><Name>Anrufbeantworter</Name></Item>' +
+                '<Item><Index>1</Item><Display>0</Display><Enable>0</Enable><Name></Name></Item></List>',
+        );
+        assert.equal(list.running, true);
+        assert.equal(list.capacity, 38);
+        assert.deepEqual(list.tams[0], {index: 0, display: true, enabled: true, name: 'Anrufbeantworter'});
+        assert.equal(list.tams[1].display, false);
+        assert.deepEqual(parseTamList(''), {running: null, stick: null, status: null, capacity: null, tams: []});
+    });
+
+    test('tam messages', () => {
+        const messages = parseTamMessages(fixture('tammessages.xml'));
+        assert.equal(messages.length, 2);
+        assert.deepEqual(messages[0], {
+            index: 3,
+            tam: 0,
+            number: '0301234567',
+            name: 'Max Mustermann',
+            own: '987654',
+            ts: new Date(2026, 7, 26, 17, 42).getTime(),
+            duration: 60,
+            new: true,
+            inbook: true,
+            path: '/data/tam/rec/rec.0.003',
+        });
+        assert.equal(messages[1].new, false);
+        assert.deepEqual(parseTamMessages('<Root></Root>'), []);
+    });
+
+    test('deflections', () => {
+        const list = parseDeflections(
+            '<List><Item><DeflectionId>0</DeflectionId><Enable>1</Enable><Type>fromNumber</Type><Number>0301234567</Number>' +
+                '<DeflectionToNumber>0151000000</DeflectionToNumber><Mode>eImmediately</Mode><Outgoing></Outgoing><PhonebookID></PhonebookID></Item>' +
+                '<Item><DeflectionId>1</DeflectionId><Enable>0</Enable><Type>fromAll</Type><Number></Number>' +
+                '<DeflectionToNumber>**600</DeflectionToNumber><Mode>eNoResponse</Mode><Outgoing>987654</Outgoing><PhonebookID>0</PhonebookID></Item></List>',
+        );
+        assert.deepEqual(list, [
+            {
+                id: 0,
+                enabled: true,
+                type: 'fromNumber',
+                number: '0301234567',
+                to: '0151000000',
+                mode: 'eImmediately',
+                outgoing: '',
+                phonebook: null,
+            },
+            {
+                id: 1,
+                enabled: false,
+                type: 'fromAll',
+                number: '',
+                to: '**600',
+                mode: 'eNoResponse',
+                outgoing: '987654',
+                phonebook: 0,
+            },
+        ]);
+        assert.deepEqual(parseDeflections('<List></List>'), []);
     });
 });

@@ -237,6 +237,27 @@ per-host topics (the counts still cover every host).
 | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `calllist` | array | newest first, `--calllist-max` entries: `{id, type, number, name, own, device, port, ts, duration, path}`; `type` is `incoming`, `missed`, `outgoing`, `rejected`, `active_incoming`, `active_outgoing` |
 
+**Answering machines** (`X_AVM-DE_TAM GetList` + `GetMessageList`; `n` is the box's index 0–4;
+messages are re-read after every call; `--no-tam` to skip)
+
+| item                   | type   | notes                                                                                    |
+| ---------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| `tam/running`          | bool   | the answering machine function is active                                                 |
+| `tam/capacity`         | int    | remaining recording time, minutes                                                        |
+| `tam/<n>/enabled`      | bool   | settable                                                                                 |
+| `tam/<n>/name`         | string |                                                                                          |
+| `tam/<n>/messages`     | int    | messages in the list (`--calllist-max` at most)                                          |
+| `tam/<n>/new_messages` | int    | unheard messages                                                                         |
+| `tam/<n>/last_message` | object | `{index, tam, number, name, own, ts, duration, new, inbook, path}` of the newest message |
+| `tam/<n>/message_list` | array  | the messages, newest first                                                               |
+
+**Call deflections** (`X_AVM-DE_OnTel GetDeflections`; `--no-deflections` to skip)
+
+| item                      | type   | notes                                                                                                                                                                                                         |
+| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `deflection/<id>/enabled` | bool   | settable                                                                                                                                                                                                      |
+| `deflection/<id>/details` | object | `{type, number, to, mode, outgoing, phonebook}` — `type` (`fromNumber`, `fromAll`, `fromAnonymous`, `fromPB`, `toMSN`, …) and `mode` (`eImmediately`, `eBusy`, `eNoResponse`, …) are the box's own vocabulary |
+
 ### `<name>/set/<item>`
 
 Change requests. Payload is a plain value or mqtt-smarthome style JSON (`{"val": true}`).
@@ -260,8 +281,8 @@ mosquitto_pub -t fritz/set/wan/reconnect -m true
 (not retained) as `{service, action, result}` or `{service, action, error, code}`. It is off by
 default — with it, whoever can publish to the broker can reconfigure the box.
 
-The status is re-read from the box after a command (WLAN: 2 s later); a rejected command is
-logged at `warn`.
+The status is re-read from the box after a command (WLAN, answering machine, deflection: 2 s
+later); a rejected command is logged at `warn`.
 
 ## Home Assistant
 
@@ -269,7 +290,8 @@ MQTT discovery is on by default (HA ≥ 2024.11, device-based discovery). The bo
 device with the DSL line sensors (rates, noise margin, attenuation, error counters), the internet
 connection (`connectivity` binary sensor, external IP, uptime), traffic counters (`data_size`,
 `total_increasing`) and rates, one switch and one client count per WLAN, call sensors (ringing,
-in call, last caller/callee), host counts, uptime and the `Reconnect` and `Reboot` buttons.
+in call, last caller/callee), one switch and a new-message count per answering machine, one
+switch per call deflection, host counts, uptime and the `Reconnect` and `Reboot` buttons.
 With `--ha-hosts` every LAN host is its own device with a `device_tracker`
 (`source_type: router`, `home`/`not_home`) whose attributes are the host's details;
 `--host-filter` limits them. Availability follows `<name>/connected`.

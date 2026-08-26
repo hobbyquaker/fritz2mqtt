@@ -7,7 +7,15 @@ import {handle as handleInstall} from './lib/install.js';
 import {Tr064Client, Tr064Error, normalizeServiceType} from './lib/tr064.js';
 import {CallMonitor} from './lib/callmonitor.js';
 import {FritzState, normalizeMac} from './lib/model.js';
-import {parseCallList, parseHostList, hostFromEntry, listPath} from './lib/lists.js';
+import {
+    parseCallList,
+    parseHostList,
+    parseTamList,
+    parseTamMessages,
+    parseDeflections,
+    hostFromEntry,
+    listPath,
+} from './lib/lists.js';
 import {discoveryModel} from './lib/hadiscovery.js';
 
 handleInstall(config);
@@ -42,6 +50,8 @@ const adapter = createAdapter({
                 callmonitor: config.callmonitor,
             },
             wlans: config.wlan ? state.wlanList() : [],
+            tams: config.tam ? state.tamList() : [],
+            deflections: config.deflections ? state.deflectionList() : [],
             hosts: state.hostList(),
             jsonPayloads: config.jsonPayloads,
             haHosts: config.haHosts,
@@ -63,7 +73,7 @@ const box = new Tr064Client({
 const state = new FritzState({hostKey: config.hostKey, hostFilter: config.hostFilter});
 
 /** Which optional services the box offers; decided once after the first description. */
-const features = {dsl: true, wan: true, traffic: true, hosts: true, hostList: true, calllist: true};
+const features = {dsl: true, wan: true, traffic: true, hosts: true, hostList: true, calllist: true, tam: true};
 let wanService = null; // WANPPPConnection:1 or WANIPConnection:1
 let trafficService = null; // igd:WANCommonInterfaceConfig:1 (64 bit counters + rates) or the tr-064 one
 let dslAction = 'GetInfo'; // or X_AVM-DE_GetDSLInfo for users without configuration rights
@@ -139,6 +149,7 @@ async function detectServices() {
     features.dsl = await box.hasService('WANDSLInterfaceConfig:1');
     features.hosts = await box.hasService('Hosts:1');
     features.calllist = await box.hasService('X_AVM-DE_OnTel:1');
+    features.tam = await box.hasService('X_AVM-DE_TAM:1');
     trafficService = null;
     for (const type of ['igd:WANCommonInterfaceConfig:1', 'WANCommonInterfaceConfig:1']) {
         if (await box.hasService(type)) {
@@ -197,6 +208,7 @@ async function detectServices() {
             wlanServices.length && `wlan(${wlanServices.length})`,
             features.hosts && 'hosts',
             features.calllist && 'calllist',
+            features.tam && 'tam',
         ]
             .filter(Boolean)
             .join(', '),
@@ -390,8 +402,42 @@ async function pollHosts() {
     apply(state.applyHosts(hosts));
 }
 
+async function pollTams() {
+    if (!config.tam || !features.tam) {
+        return;
+    }
+    const res = await optional('tam list', () => box.call('X_AVM-DE_TAM:1', 'GetList'));
+    if (!res) {
+        return;
+    }
+    const list = parseTamList(res.TAMList || '');
+    for (const tam of list.tams) {
+        if (!tam.display) {
+            continue;
+        }
+        tam.messages = await optional(`tam ${tam.index} messages`, async () => {
+            const r = await box.call('X_AVM-DE_TAM:1', 'GetMessageList', {NewIndex: tam.index});
+            if (!r.URL) {
+                throw new Error('no message list url');
+            }
+            return parseTamMessages(await box.get(listPath(r.URL, {max: config.calllistMax})));
+        });
+    }
+    apply(state.applyTams(list));
+}
+
+async function pollDeflections() {
+    if (!config.deflections || !features.calllist) {
+        return;
+    }
+    const res = await optional('deflections', () => box.call('X_AVM-DE_OnTel:1', 'GetDeflections'));
+    if (res) {
+        apply(state.applyDeflections(parseDeflections(res.DeflectionList || '')));
+    }
+}
+
 async function pollCallList() {
-    if (!config.calllist || !features.calllist) {
+    if (!config.calllist || !features.calllist || polling) {
         return;
     }
     const res = await box.call('X_AVM-DE_OnTel:1', 'GetCallList');
@@ -417,6 +463,8 @@ async function poll() {
         await pollWan();
         await pollWlans();
         await pollHosts();
+        await pollTams();
+        await pollDeflections();
         if (!adapter.deviceConnected) {
             log.info('fritz', box.info.modelName || box.url, 'connected');
             setDeviceConnected(true);
@@ -483,8 +531,9 @@ function scheduleTraffic(delay) {
     trafficTimer = setTimeout(traffic, delay);
 }
 
+/** Re-reads the call list and the answering machine messages (a few seconds after a call ends). */
 function scheduleCallList(delay = CALLLIST_DELAY) {
-    if (adapter.shuttingDown || !config.calllist || !features.calllist) {
+    if (adapter.shuttingDown) {
         return;
     }
     if (calllistTimer) {
@@ -493,6 +542,9 @@ function scheduleCallList(delay = CALLLIST_DELAY) {
     calllistTimer = setTimeout(() => {
         calllistTimer = null;
         pollCallList().catch((err) => log.warn('fritz call list failed:', err.message));
+        if (delay > 0) {
+            pollTams().catch((err) => log.debug('fritz tam refresh failed:', err.message));
+        }
     }, delay);
 }
 
@@ -536,6 +588,40 @@ async function handleSet(parts, value, topic) {
         log.info('fritz wlan', key, enabled ? 'enable' : 'disable');
         await box.call(wlan.type, 'SetEnable', {NewEnable: enabled ? 1 : 0});
         setTimeout(() => pollWlans().catch((err) => log.debug('fritz wlan refresh failed:', err.message)), 2000);
+        return;
+    }
+
+    if (kind === 'tam' && parts.length === 3 && item === 'enabled') {
+        if (!config.tam || !state.tamList().some((t) => String(t.index) === String(key))) {
+            throw new Error(`unknown answering machine ${key}`);
+        }
+        const enabled = toBoolean(value);
+        if (enabled === undefined) {
+            throw new Error(`not a boolean: ${value}`);
+        }
+        log.info('fritz tam', key, enabled ? 'enable' : 'disable');
+        await box.call('X_AVM-DE_TAM:1', 'SetEnable', {NewIndex: Number(key), NewEnable: enabled ? 1 : 0});
+        setTimeout(() => pollTams().catch((err) => log.debug('fritz tam refresh failed:', err.message)), 2000);
+        return;
+    }
+
+    if (kind === 'deflection' && parts.length === 3 && item === 'enabled') {
+        if (!config.deflections || !state.deflectionList().some((d) => String(d.id) === String(key))) {
+            throw new Error(`unknown deflection ${key}`);
+        }
+        const enabled = toBoolean(value);
+        if (enabled === undefined) {
+            throw new Error(`not a boolean: ${value}`);
+        }
+        log.info('fritz deflection', key, enabled ? 'enable' : 'disable');
+        await box.call('X_AVM-DE_OnTel:1', 'SetDeflectionEnable', {
+            NewDeflectionId: Number(key),
+            NewEnable: enabled ? 1 : 0,
+        });
+        setTimeout(
+            () => pollDeflections().catch((err) => log.debug('fritz deflection refresh failed:', err.message)),
+            2000,
+        );
         return;
     }
 

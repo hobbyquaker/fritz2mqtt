@@ -83,13 +83,23 @@ export const OPTIONS = {
     },
     'calllist-max': {
         type: 'number',
-        describe: 'number of calls in the call list',
+        describe: 'number of entries in the call list and in each answering machine message list',
         default: 20,
     },
     'calllist-days': {
         type: 'number',
         describe: 'only calls of the last n days in the call list (0 = no limit)',
         default: 0,
+    },
+    tam: {
+        type: 'boolean',
+        describe: 'publish the answering machines (tam/<n>/*) and accept tam/<n>/enabled commands',
+        default: true,
+    },
+    deflections: {
+        type: 'boolean',
+        describe: 'publish call deflections (deflection/<id>/*) and accept deflection/<id>/enabled commands',
+        default: true,
     },
     'raw-set': {
         type: 'boolean',

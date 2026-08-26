@@ -341,4 +341,89 @@ describe('FritzState', () => {
         assert.deepEqual(items(r), {calllist: [{id: 1}]});
         assert.equal(s.applyCallList([{id: 1}]).changes.length, 0);
     });
+
+    test('tams: items, message counts, discovery on set change', () => {
+        const s = new FritzState();
+        const msgs = [
+            {index: 3, number: '0301', name: 'Max', new: true, ts: 1},
+            {index: 2, number: '0151', name: '', new: false, ts: 0},
+        ];
+        const r = s.applyTams({
+            running: true,
+            capacity: 38,
+            tams: [
+                {index: 0, display: true, enabled: true, name: 'AB', messages: msgs},
+                {index: 1, display: false, enabled: false, name: ''},
+            ],
+        });
+        assert.equal(r.discovery, true);
+        const v = items(r);
+        assert.equal(v['tam/running'], true);
+        assert.equal(v['tam/capacity'], 38);
+        assert.equal(v['tam/0/enabled'], true);
+        assert.equal(v['tam/0/name'], 'AB');
+        assert.equal(v['tam/0/messages'], 2);
+        assert.equal(v['tam/0/new_messages'], 1);
+        assert.deepEqual(v['tam/0/last_message'], msgs[0]);
+        assert.deepEqual(v['tam/0/message_list'], msgs);
+        assert.equal(v['tam/1/enabled'], undefined);
+        assert.deepEqual(s.tamList(), [{index: 0, name: 'AB'}]);
+        // messages unreadable: counts untouched
+        const r2 = s.applyTams({
+            running: true,
+            capacity: 38,
+            tams: [{index: 0, display: true, enabled: false, name: 'AB', messages: null}],
+        });
+        assert.deepEqual(items(r2), {'tam/0/enabled': false});
+        assert.equal(r2.discovery, false);
+        // tam gone → cleared
+        const r3 = s.applyTams({running: false, capacity: 0, tams: []});
+        assert.ok(r3.clear.includes('tam/0/enabled'));
+        assert.ok(r3.clear.includes('tam/0/message_list'));
+        assert.equal(r3.discovery, true);
+    });
+
+    test('deflections', () => {
+        const s = new FritzState();
+        const list = [
+            {
+                id: 0,
+                enabled: true,
+                type: 'fromNumber',
+                number: '0301',
+                to: '0151',
+                mode: 'eImmediately',
+                outgoing: '',
+                phonebook: null,
+            },
+            {
+                id: 1,
+                enabled: false,
+                type: 'fromAll',
+                number: '',
+                to: '**600',
+                mode: 'eNoResponse',
+                outgoing: '',
+                phonebook: 0,
+            },
+        ];
+        const r = s.applyDeflections(list);
+        assert.equal(r.discovery, true);
+        const v = items(r);
+        assert.equal(v['deflection/0/enabled'], true);
+        assert.equal(v['deflection/1/enabled'], false);
+        assert.deepEqual(v['deflection/0/details'], {
+            type: 'fromNumber',
+            number: '0301',
+            to: '0151',
+            mode: 'eImmediately',
+            outgoing: '',
+            phonebook: null,
+        });
+        assert.equal(s.applyDeflections(list).changes.length, 0);
+        assert.deepEqual(s.deflectionList()[1], {id: 1, type: 'fromAll', number: '', to: '**600'});
+        const r2 = s.applyDeflections([{...list[0], enabled: false}]);
+        assert.deepEqual(items(r2), {'deflection/0/enabled': false});
+        assert.ok(r2.clear.includes('deflection/1/details'));
+    });
 });

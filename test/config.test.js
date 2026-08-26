@@ -49,6 +49,8 @@ describe('config schema', () => {
         assert.equal(p.calllist.default, true);
         assert.equal(p['calllist-max'].default, 20);
         assert.equal(p['calllist-days'].default, 0);
+        assert.equal(p.tam.default, true);
+        assert.equal(p.deflections.default, true);
         assert.equal(p['raw-set'].default, false);
         assert.equal(p.name.default, 'fritz');
     });
