@@ -1,0 +1,71 @@
+{
+  "name": "fritz2mqtt",
+  "version": "1.0.0",
+  "description": "Interface between AVM FRITZ!Box routers (TR-064) and MQTT: DSL/WAN status, traffic, WLAN, LAN hosts, call monitor, with Home Assistant discovery",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fritz2mqtt": "index.js"
+  },
+  "preferGlobal": true,
+  "files": [
+    "index.js",
+    "config.js",
+    "lib/"
+  ],
+  "engines": {
+    "node": "^20.19 || ^22.12 || >=24"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write . && eslint --fix .",
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "deploy": "bash deploy.sh"
+  },
+  "keywords": [
+    "fritz",
+    "fritzbox",
+    "fritz!box",
+    "avm",
+    "tr-064",
+    "tr064",
+    "dsl",
+    "callmonitor",
+    "mqtt",
+    "smarthome",
+    "mqtt-smarthome",
+    "mqtt-interfaces",
+    "home-automation",
+    "home-assistant"
+  ],
+  "author": "Sebastian 'Hobbyquaker' Raff <hobbyquaker@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hobbyquaker/fritz2mqtt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hobbyquaker/fritz2mqtt/issues"
+  },
+  "homepage": "https://github.com/hobbyquaker/fritz2mqtt#readme",
+  "mqttInterfaces": {
+    "spec": "2.0",
+    "envPrefix": "FRITZ2MQTT",
+    "needs": [
+      "network-host"
+    ],
+    "serviceExtra": []
+  },
+  "dependencies": {
+    "mqtt-interfaces-core": "^0.6.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.0.0"
+  }
+}

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <timestamp>1724686000</timestamp>
+  <Call>
+    <Id>105</Id>
+    <Type>2</Type>
+    <Caller>0301234567</Caller>
+    <Called>SIP: 987654</Called>
+    <CalledNumber>987654</CalledNumber>
+    <Name>Max Mustermann</Name>
+    <Numbertype>sip</Numbertype>
+    <Device></Device>
+    <Port>-1</Port>
+    <Date>26.08.26 17:42</Date>
+    <Duration>0:00</Duration>
+    <Count></Count>
+    <Path></Path>
+  </Call>
+  <Call>
+    <Id>104</Id>
+    <Type>3</Type>
+    <Caller>987654</Caller>
+    <Called>0401112233</Called>
+    <CalledNumber></CalledNumber>
+    <Name></Name>
+    <Numbertype>sip</Numbertype>
+    <Device>Küche</Device>
+    <Port>11</Port>
+    <Date>25.08.26 09:01</Date>
+    <Duration>1:03</Duration>
+    <Count></Count>
+    <Path></Path>
+  </Call>
+  <Call>
+    <Id>103</Id>
+    <Type>1</Type>
+    <Caller>0151000000</Caller>
+    <Called>SIP: 987654</Called>
+    <CalledNumber>987654</CalledNumber>
+    <Name>Mobil</Name>
+    <Numbertype>sip</Numbertype>
+    <Device>Büro</Device>
+    <Port>10</Port>
+    <Date>24.08.26 12:30</Date>
+    <Duration>0:12</Duration>
+    <Count></Count>
+    <Path>/download.lua?path=/var/media/ftp/USB/FRITZ/voicebox/rec/rec.0.000</Path>
+  </Call>
+</root>
