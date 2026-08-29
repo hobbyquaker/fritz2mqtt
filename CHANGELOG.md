@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- `mqttInterfaces.needs` uses the vocabulary the core documents now: `network` (was ["network-host"]) — shown as badges in she's catalog.
+- Package description without the Home Assistant discovery clause (discovery is a given for adapters on the core).
+
 ## 1.1.0
 
 ### Added

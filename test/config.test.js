@@ -18,7 +18,7 @@ describe('config schema', () => {
         assert.deepEqual(schema['x-adapter'].mqttInterfaces, {
             spec: '2.0',
             envPrefix: 'FRITZ2MQTT',
-            needs: ['network-host'],
+            needs: ['network'],
             serviceExtra: [],
         });
     });
