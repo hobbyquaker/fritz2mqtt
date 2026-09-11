@@ -59,7 +59,7 @@ First release. An MQTT interface for AVM FRITZ!Box routers on
 2.x), like the author's other xyz2mqtt adapters. It replaces a Node-RED flow built on
 node-red-contrib-fritz (see README "Migrating from node-red-contrib-fritz"). **Nothing has been
 verified against a real FRITZ!Box yet** — the implementation follows AVM's TR-064 documentation
-and is tested against a fake box; see README "Compatibility" and ROADMAP.md.
+and is tested against a fake box; see README "Compatibility" and the roadmap.
 
 ### Added
 

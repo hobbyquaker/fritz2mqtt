@@ -12,8 +12,9 @@ It follows the [mqtt-smarthome](https://github.com/mqtt-smarthome/mqtt-smarthome
 and is built on [mqtt-interfaces-core](https://github.com/hobbyquaker/mqtt-interfaces-core)
 (`../mqtt-interfaces-core` when checked out next to this repo — generic fixes go there; its README
 is the complete guide to building an adapter). Consistency with the core's conventions and with
-unifi2mqtt / lgtv2mqtt / cul2mqtt is a hard requirement. ROADMAP.md lists what is planned and,
-above all, what still needs verification on real boxes — **nothing has been run against a
+unifi2mqtt / lgtv2mqtt / cul2mqtt is a hard requirement. The roadmap is kept in the maintainer's
+agents repository, checked out next to this one as `../she-agent/roadmap-items/fritz2mqtt/`; it lists what is
+planned and, above all, what still needs verification on real boxes — **nothing has been run against a
 FRITZ!Box yet**, only against a fake one that speaks the documented protocol.
 
 ## MQTT conventions (mqtt-smarthome)
@@ -90,7 +91,7 @@ CI runs both on Node 20/22/24. `node index.js --config-schema` must print valid 
 
 ## Known weak spots (be careful around these)
 
-- **Unverified protocol details** — see ROADMAP.md "Verification on real boxes". Do not "fix"
+- **Unverified protocol details** — see the roadmap's "Verification on real boxes". Do not "fix"
   action or argument names from memory; AVM's per-service PDFs
   (https://fritz.com/service/schnittstellen/) and a debug log from a real box are the sources.
 - Rights: `DeviceInfo GetInfo`, `WANDSLInterfaceConfig GetInfo`, `WANPPPConnection GetInfo`
