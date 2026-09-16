@@ -1,5 +1,6 @@
 # fritz2mqtt
 
+[![mqtt-smarthome](https://img.shields.io/badge/mqtt-smarthome-blue.svg)](https://github.com/mqtt-smarthome/mqtt-smarthome)
 [![npm](https://img.shields.io/npm/v/fritz2mqtt.svg)](https://www.npmjs.com/package/fritz2mqtt)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
