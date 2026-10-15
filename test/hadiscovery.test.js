@@ -1,6 +1,7 @@
 import {test, describe} from 'node:test';
 import assert from 'node:assert/strict';
 
+import {VALUE_TEMPLATE} from 'mqtt-interfaces-core/hadiscovery';
 import {discoveryModel, wlanLabel, deflectionLabel, ADAPTER} from '../lib/hadiscovery.js';
 
 describe('hadiscovery', () => {
@@ -29,7 +30,11 @@ describe('hadiscovery', () => {
         });
         const c = box.components;
         assert.equal(c.dsl_downstream_curr_rate.stat_t, 'fritz/status/dsl/downstream_curr_rate');
-        assert.equal(c.dsl_downstream_curr_rate.val_tpl, '{{ value_json.val }}');
+        assert.equal(c.dsl_downstream_curr_rate.val_tpl, VALUE_TEMPLATE);
+        // a JSON boolean must render as true/false to match pl_on/stat_on (lgtv2mqtt#21, core 0.17.1)
+        assert.equal(c.wan_connected.val_tpl, VALUE_TEMPLATE);
+        assert.equal(c.wlan_1_enabled.val_tpl, VALUE_TEMPLATE);
+        assert.equal(c.wlan_1_enabled.stat_on, 'true');
         assert.equal(c.dsl_downstream_curr_rate.unit_of_meas, 'kbit/s');
         assert.equal(c.dsl_downstream_noise_margin.ent_cat, 'diagnostic');
         assert.equal(c.wan_connected.p, 'binary_sensor');
